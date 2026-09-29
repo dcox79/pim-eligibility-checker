@@ -1,0 +1,16 @@
+# Generated reports and local identity data
+reports/
+audit/
+*.html
+pim-eligibility-*.json
+pim-eligibility-*-request.txt
+*.log
+.env
+.env.*
+*.pfx
+*.p12
+*.key
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/

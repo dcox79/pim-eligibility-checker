@@ -1,0 +1,22 @@
+name: Read-only checker tests
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  offline-tests:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        edition: [pwsh, powershell]
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Run offline behavioral tests
+        shell: ${{ matrix.edition }}
+        run: |
+          ./tests/identity/Invoke-PimEligibilityTests.ps1 -ArtifactDirectory (Join-Path $env:RUNNER_TEMP 'pim-eligibility-tests')
