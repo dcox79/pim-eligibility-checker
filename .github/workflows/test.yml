@@ -8,15 +8,15 @@ permissions:
 jobs:
   offline-tests:
     runs-on: windows-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        edition: [pwsh, powershell]
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           persist-credentials: false
-      - name: Run offline behavioral tests
-        shell: ${{ matrix.edition }}
+      - name: Run offline behavioral tests in PowerShell 7
+        shell: pwsh
         run: |
-          ./tests/identity/Invoke-PimEligibilityTests.ps1 -ArtifactDirectory (Join-Path $env:RUNNER_TEMP 'pim-eligibility-tests')
+          ./tests/identity/Invoke-PimEligibilityTests.ps1 -ArtifactDirectory (Join-Path $env:RUNNER_TEMP 'pim-eligibility-tests-pwsh')
+      - name: Run offline behavioral tests in Windows PowerShell 5.1
+        shell: powershell
+        run: |
+          ./tests/identity/Invoke-PimEligibilityTests.ps1 -ArtifactDirectory (Join-Path $env:RUNNER_TEMP 'pim-eligibility-tests-ps51')
