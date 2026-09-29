@@ -5,6 +5,25 @@ with your administrator. It never grants, removes or activates access. It writes
 
 ## Run it
 
+### Windows launcher
+
+Extract the release ZIP and double-click **Start-PimEligibility.cmd**. Install the Graph
+module below first if it is missing. Enter your Tenant ID and the full sign-in name of the
+user to inspect. Choose whether to include Azure resource roles (requires Azure CLI), then
+choose browser or device-code sign-in. Sign in with your own authorized inspecting account.
+The launcher signs Azure CLI into the selected tenant when Azure roles are selected, runs
+the read-only check, and opens the HTML report. It prints the checklist and JSON locations too.
+It uses PowerShell 7 if available, otherwise Windows PowerShell 5.1. No separate Python install
+is needed. Enter Q at a prompt to cancel; close the console when finished.
+
+The launcher does not install prerequisites or change execution policies. Follow your
+organization's script policy. If Windows blocks a downloaded file, review it and use
+Properties > Unblock on the downloaded ZIP before extracting, if your policy permits.
+Managed restrictions still apply. You can also run `./scripts/Start-PimEligibility.ps1`
+from an existing PowerShell window.
+
+### Command-line use
+
 You only need `Get-PimEligibility.ps1`; the cloning scripts and tenant templates are not required.
 Prefer PowerShell 7. Windows PowerShell 5.1 is also tested with mocked APIs.
 
@@ -27,7 +46,7 @@ overview page as **Tenant ID**, or inspect your current Azure login with:
 az account show --query tenantId --output tsv
 ```
 
-From the folder containing the downloaded script:
+From the folder containing the checker script (the `scripts` folder in the release ZIP):
 
 ```powershell
 .\Get-PimEligibility.ps1 -User 'reference-admin@example.com' -TenantId '<your-directory-guid>'
@@ -38,7 +57,7 @@ not their display name. The script opens Microsoft sign-in if Graph is not alrea
 Use an account approved to read that organization's access information.
 
 In this project, the script is in `scripts`, so use `./scripts/Get-PimEligibility.ps1`.
-The separate ZIP contains just the checker and this guide; extract it before running.
+The release ZIP contains the launcher, a `scripts` folder, and this guide; extract it before running.
 
 ## What you receive
 

@@ -24,6 +24,19 @@ PIM licensing is separate from this script; see [Microsoft's licensing requireme
 
 ## Quick start
 
+**Easiest on Windows:** download the release ZIP, extract it, and double-click
+`Start-PimEligibility.cmd`. Enter the organization's Tenant ID and the user's full sign-in
+name, choose whether to include Azure resource roles, then sign in. The report opens automatically.
+The console stays open so you can read errors or copy the checklist location. Enter Q to quit.
+
+Prerequisites still apply: install the Graph module once using the command below. Azure CLI
+is optional if you choose N for Azure roles. The launcher handles Azure sign-in when selected;
+it does not install software, change execution policies, or request write permissions.
+If your organization blocks scripts, follow its approved process. For a downloaded file blocked
+by Windows, review it first and use the file's Properties > Unblock if permitted.
+
+### Command-line alternative
+
 Download or clone this repository, open PowerShell in its folder, then:
 
 ```powershell
@@ -45,7 +58,7 @@ The command prints where it saved the report and checklist. Default storage is
 The supplied `.gitignore` excludes generated reports and local credentials.
 
 Read the [full setup, options, permissions, and troubleshooting guide](handoff/pim-eligibility-readonly.md).
-For a portable script plus guide, use the ZIP attached to the repository release.
+The ZIP includes the launcher, scripts, and setup guide. Python is not required to run them.
 
 ## Coverage and limits
 
@@ -81,6 +94,8 @@ powershell -NoProfile -File tests/identity/Invoke-PimEligibilityTests.ps1 -Artif
 ```
 
 The GitHub Actions workflow runs these checks in both PowerShell editions with read-only repository permissions.
+It also runs 12 offline launcher checks in each edition, including input validation, cancellation,
+tenant-specific sign-in, skipped Azure checks, partial results, and failed sign-in/report handling.
 Optional Python wrapper and source-boundary checks:
 
 ```powershell
