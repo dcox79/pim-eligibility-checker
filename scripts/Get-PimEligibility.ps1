@@ -1,4 +1,4 @@
-#requires -Version 5.1
+﻿#requires -Version 5.1
 
 <#
 .SYNOPSIS
@@ -91,14 +91,22 @@ function Connect-RoGraph {
         throw 'Install prerequisite: Install-Module Microsoft.Graph.Authentication -Scope CurrentUser'
     }
     Import-Module Microsoft.Graph.Authentication -ErrorAction Stop
+    # Consent is needed for both a fresh login and a cached session missing our reads.
+    $requiredScopes = @('User.Read.All', 'Group.Read.All', 'RoleManagement.Read.Directory',
+                        'PrivilegedEligibilitySchedule.Read.AzureADGroup')
     $ctx = Get-MgContext
-    if (-not $ctx) {
+    if ($ctx) { Assert-RoGraphContext $ExpectedTenant }
+    $heldScopes = Get-RoValue $ctx 'Scopes' @()
+    $missingScopes = @($requiredScopes | Where-Object { $heldScopes -notcontains $_ })
+    if ($ctx -and $missingScopes.Count -and $ExistingOnly) {
+        throw "Existing Graph session is missing required read permissions: $($missingScopes -join ', '). Omit -UseExistingGraphSession to request them."
+    }
+    if (-not $ctx -or $missingScopes.Count) {
         if ($ExistingOnly) { throw 'No Graph session. Sign in first or omit -UseExistingGraphSession.' }
         # RoleManagement.Read.Directory also covers role definitions and group role mappings.
         $p = @{
             TenantId = $ExpectedTenant; Environment = 'Global'; ContextScope = 'Process'
-            Scopes = @('User.Read.All', 'Group.Read.All', 'RoleManagement.Read.Directory',
-                       'PrivilegedEligibilitySchedule.Read.AzureADGroup')
+            Scopes = $requiredScopes
             ErrorAction = 'Stop'
         }
         $cmd = Get-Command Connect-MgGraph
@@ -108,8 +116,19 @@ function Connect-RoGraph {
             elseif ($cmd.Parameters.ContainsKey('UseDeviceAuthentication')) { $p.UseDeviceAuthentication = $true }
             else { throw 'Installed Graph SDK does not support device-code authentication.' }
         }
-        Connect-MgGraph @p
+        Write-Host 'Requesting Microsoft Graph read permissions:'
+        Write-Host ('  ' + ($requiredScopes -join ', '))
+        Write-Host 'If Microsoft shows Need admin approval, ask your tenant administrator to approve these permissions for Microsoft Graph PowerShell.'
+        try { Connect-MgGraph @p }
+        catch { throw "Graph sign-in/consent failed. A tenant administrator may need to approve the requested read permissions. $($_.Exception.Message)" }
+        Assert-RoGraphContext $ExpectedTenant
+        $heldScopes = Get-RoValue (Get-MgContext) 'Scopes' @()
+        $missingScopes = @($requiredScopes | Where-Object { $heldScopes -notcontains $_ })
+        if ($missingScopes.Count) {
+            throw "Graph session is still missing required read permissions: $($missingScopes -join ', '). Ask your tenant administrator to approve consent, then run again."
+        }
     }
+    # Scope metadata is not proof of effective authorization; report reads still surface 403s.
     Assert-RoGraphContext $ExpectedTenant
 }
 

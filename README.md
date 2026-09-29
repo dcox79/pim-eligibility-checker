@@ -12,7 +12,7 @@ and a JSON evidence file. Failed reads are marked **PARTIAL**, not mistaken for 
 - **Azure CLI** for Azure resource eligibility. Omit it when using `-SkipAzure`.
 - The organization's **Tenant ID** and the reference user's **full sign-in name or object ID**.
 - An organization with PIM available and an account authorized to inspect the relevant user/groups/scopes.
-  An administrator may need to approve the Graph application's read permissions. App consent and
+  The checker requests its four Graph read permissions during sign-in and reconnects if an existing session lacks them. An administrator may need to approve the Graph application's read permissions. App consent and
   the inspecting account's roles are separate requirements.
 
 Global Reader is one supported reader role for the directory/group APIs, but is not a guarantee
@@ -83,7 +83,7 @@ normal Microsoft authentication; it does not upload reports.
 
 **Initial release: offline-tested, not yet validated against a live tenant.**
 
-The behavioral suite exercises 21 scenarios on PowerShell 7 and Windows PowerShell 5.1, including
+The behavioral suite exercises 27 scenarios on PowerShell 7 and Windows PowerShell 5.1, including
 wrong-tenant refusal, GET-only transports, permission errors, paging failures, fallback group discovery,
 condition preservation, schedule dates, and HTML escaping. All identities in tests are synthetic.
 No Azure account, Graph module, cloud credentials, or live tenant is needed to run the tests.

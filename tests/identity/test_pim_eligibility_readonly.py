@@ -21,7 +21,7 @@ def test_behavior_in_supported_powershell(shell, tmp_path):
         cwd=ROOT, capture_output=True, text=True, timeout=90,
     )
     assert result.returncode == 0, result.stdout + result.stderr
-    assert "21 behavioral checks passed" in result.stdout
+    assert "27 behavioral checks passed" in result.stdout
 
 
 def test_checker_has_no_grant_engine_or_write_transports():

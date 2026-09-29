@@ -1,4 +1,4 @@
-# Read-only PIM eligibility checker
+﻿# Read-only PIM eligibility checker
 
 Use this to inspect a reference user's PIM eligibility and prepare a list of access to discuss
 with your administrator. It never grants, removes or activates access. It writes local reports.
@@ -53,7 +53,7 @@ From the folder containing the checker script (the `scripts` folder in the relea
 ```
 
 Replace both examples with real values. Use the reference user's full sign-in name or object ID,
-not their display name. The script opens Microsoft sign-in if Graph is not already connected.
+not their display name. The script opens Microsoft sign-in if Graph is not already connected or the existing session lacks required read permissions. It displays the requested permissions before sign-in.
 Use an account approved to read that organization's access information.
 
 In this project, the script is in `scripts`, so use `./scripts/Get-PimEligibility.ps1`.
@@ -133,7 +133,7 @@ The checker requests only these Graph read permissions:
 
 Application consent and the inspecting person's assigned role are separate requirements. An
 existing session may hold broader permissions, but this script still sends only GET requests.
-It does not grant consent, assign an administrator role or escalate to write permissions itself.
+It requests consent during Microsoft sign-in but cannot approve administrator consent or assign you an administrator role. If Microsoft displays **Need admin approval**, ask your tenant administrator to approve the listed read permissions for Microsoft Graph PowerShell. Then run the checker again. It never requests write permissions.
 
 Microsoft documents several supported reader roles for [directory eligibility](https://learn.microsoft.com/en-us/graph/api/rbacapplication-list-roleeligibilityscheduleinstances?view=graph-rest-1.0),
 and group ownership/membership or supported directory roles for [group eligibility](https://learn.microsoft.com/en-us/graph/api/privilegedaccessgroup-list-eligibilityscheduleinstances?view=graph-rest-1.0).

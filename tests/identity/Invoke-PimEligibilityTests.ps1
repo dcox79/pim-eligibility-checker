@@ -60,7 +60,7 @@ Invoke-Case 'Authentication asks for read scopes in an explicit process-scoped t
         param($TenantId,$Environment,$ContextScope,$Scopes,[switch]$UseDeviceCode)
         Assert-That ($TenantId -eq $tenant -and $Environment -eq 'Global' -and $ContextScope -eq 'Process')
         $script:requested = $Scopes
-        $script:context = [pscustomobject]@{ TenantId = $TenantId; Environment = $Environment }
+        $script:context = [pscustomobject]@{ TenantId = $TenantId; Environment = $Environment; Scopes = $Scopes }
     }
     Connect-RoGraph $tenant -DeviceCode
     Assert-That ($script:requested.Count -eq 4)
@@ -72,6 +72,36 @@ Invoke-Case 'No implicit login when existing session required' {
     function Import-Module { }
     function Get-MgContext { return $null }
     Assert-Throws { Connect-RoGraph $tenant -ExistingOnly } 'No Graph session'
+}
+foreach ($authScenario in @('missing', 'complete', 'manual', 'wrong-tenant', 'unconsented', 'consent-error')) {
+    Invoke-Case "Graph consent handling: $authScenario" {
+        $required = @('User.Read.All', 'Group.Read.All', 'RoleManagement.Read.Directory', 'PrivilegedEligibilitySchedule.Read.AzureADGroup')
+        $script:context = [pscustomobject]@{ TenantId = $tenant; Environment = 'Global'; Scopes = @('User.Read') }
+        if ($authScenario -eq 'complete') { $script:context.Scopes = $required }
+        if ($authScenario -eq 'wrong-tenant') { $script:context.TenantId = 'wrong' }
+        $script:connectCount = 0
+        function Get-Module { return $true }
+        function Import-Module { }
+        function Get-MgContext { $script:context }
+        function Connect-MgGraph {
+            [CmdletBinding()]
+            param($TenantId, $Environment, $ContextScope, $Scopes, [switch]$UseDeviceCode)
+            $script:connectCount++
+            Assert-That ($TenantId -eq $tenant -and $Environment -eq 'Global' -and $ContextScope -eq 'Process')
+            Assert-That ($Scopes.Count -eq 4 -and @($Scopes | Where-Object { $_ -match 'Write' }).Count -eq 0)
+            if ($authScenario -eq 'consent-error') { throw 'AADSTS65001: consent required' }
+            if ($authScenario -ne 'unconsented') { $script:context.Scopes = $Scopes }
+        }
+        switch ($authScenario) {
+            'manual' { Assert-Throws { Connect-RoGraph $tenant -ExistingOnly } 'missing.*permission|missing.*scope' }
+            'wrong-tenant' { Assert-Throws { Connect-RoGraph $tenant } 'tenant' }
+            'unconsented' { Assert-Throws { Connect-RoGraph $tenant -DeviceCode } 'administrator|admin.*consent' }
+            'consent-error' { Assert-Throws { Connect-RoGraph $tenant -DeviceCode } 'administrator|admin.*consent' }
+            default { Connect-RoGraph $tenant -DeviceCode }
+        }
+        $expectedCount = if ($authScenario -in @('complete', 'manual', 'wrong-tenant')) { 0 } else { 1 }
+        Assert-That ($script:connectCount -eq $expectedCount) 'Unexpected reconnect count'
+    }
 }
 Invoke-Case 'Wrong cloud refused' {
     function Get-MgContext { [pscustomobject]@{ TenantId = $tenant; Environment = 'USGov' } }

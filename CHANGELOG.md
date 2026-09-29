@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.1 - 2026-09-29
+
+- Request required Graph read permissions when an existing session lacks them.
+- Show requested scopes and actionable administrator-consent guidance.
+- Preserve explicit no-prompt mode and wrong-tenant rejection.
+- Add six offline consent/session regressions; live tenant consent remains unverified.
+
 ## 1.1.0 - 2026-09-29
 
 - Windows double-click launcher prompts for tenant, user, Azure coverage, and sign-in method.
